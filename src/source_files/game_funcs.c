@@ -13,20 +13,21 @@ typedef struct update_subgrid_struct {
 } update_subgrid_struct;
 
 void update_point(int x, int y, int (*work_grid)[GRID_WIDTH], int (*ref_grid)[GRID_WIDTH]) {
-    //Count neighbors
+    // Count neighbors
     int live_neighbors = 0;
     for (int i = -1; i <= 1; i++) {
         for (int j = -1; j <= 1; j++) {
             //Don't check points out of bounds
-            if (x + j >= 0 && x + j < GRID_WIDTH && y + i >= 0 && y + i < GRID_HEIGHT) {
-                live_neighbors += ref_grid[i][j];
+            if (y + i >= 0 && y + i < GRID_HEIGHT && x + j >= 0 && x + j < GRID_WIDTH) {
+                live_neighbors += ref_grid[y+i][x+j];
             }
         }
     }
-    live_neighbors -= ref_grid[x][y]; //The point itself doesn't count as a neighbor
+
+    live_neighbors -= ref_grid[x][y]; //The cell itself doesn't count as a neighbor
 
     //Update cell according to rules
-    if (work_grid[x][y] == 1) {
+    if (ref_grid[x][y] == 1) {
         work_grid[x][y] = live_neighbors < 2 || live_neighbors > 3 ? 0 : 1;
     } else {
         work_grid[x][y] = live_neighbors == 3 ? 1 : 0;

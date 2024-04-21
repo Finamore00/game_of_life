@@ -113,8 +113,6 @@ int main(int argc, char *argv[]) {
 
     do {
         memcpy(ref_grid, work_grid, sizeof(int) * GRID_HEIGHT * GRID_WIDTH);
-        print_grid(ref_grid);
-        printf("\n");
         for (int i = 0; i < 4; i++) {
             int tr = pthread_create(&threads[i], &attr, update_subgrid, (void *)args[i]);
             if (tr) {
@@ -126,8 +124,14 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < 4; i++) {
             pthread_join(threads[i], NULL);
         }
-    } while (counter--);
+        print_grid(work_grid);
+        printf("\n");
+    } while (--counter);
 
+    for (int i = 0; i < 4; i++) {
+        free(args[i]);
+    }
+    pthread_attr_destroy(&attr);
     free_cmd_parse_res(parse_res);
 
     return 0;
