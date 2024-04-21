@@ -1,8 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <pthread.h>
+#include <stdbool.h>
 #include "../header_files/constants.h"
 #include "../header_files/client_utils.h"
 #include "../header_files/input_utils.h"
+#include "../header_files/game_funcs.h"
 
 /**
  * Implementation in C of John Conway's Game of Life. Small
@@ -15,14 +19,40 @@
 int main(int argc, char *argv[]) {
     int work_grid[GRID_HEIGHT][GRID_WIDTH];
     int ref_grid[GRID_HEIGHT][GRID_WIDTH];
+    pthread_t threads[4]; //Add argument for indicating thread count later.
+    pthread_attr_t attr;
+    update_subgrid_struct *args[4];
 
-    //Initialize work and reference grids
-    for (int i = 0; i < GRID_HEIGHT; i++) {
-        for (int j = 0; j < GRID_WIDTH; j++) {
+    for (int i = 0; i < 4; i++) {
+        args[i] = (update_subgrid_struct *)malloc(sizeof(update_subgrid_struct));
+
+        if (i%2 == 0) {
+            args[i]->y0 = 0;
+            args[i]->yf = GRID_HEIGHT / 2;
+            args[i]->x0 = i == 0 ? 0 : GRID_WIDTH / 2;
+            args[i]->xf = i == 0 ? GRID_WIDTH / 2 : GRID_WIDTH;
+        } else {
+            args[i]->y0 = GRID_HEIGHT / 2;
+            args[i]->yf = GRID_HEIGHT;
+            args[i]->x0 = i == 1 ? 0 : GRID_WIDTH / 2;
+            args[i]->xf = i == 1 ? GRID_WIDTH / 2 : GRID_WIDTH;
+        }
+
+        args[i]->work_grid = work_grid;
+        args[i]->ref_grid = ref_grid;
+    }
+
+    // Initialize work and reference grids
+    for (int i = 0; i < GRID_HEIGHT; i++)
+    {
+        for (int j = 0; j < GRID_WIDTH; j++)
+        {
             work_grid[i][j] = 0;
             ref_grid[i][j] = 0;
         }
     }
+
+    pthread_attr_init(&attr);
 
     //Read command line arguments and determine operation mode.
     cmd_parse_res *parse_res = parse_cmd_line_arguments(argc, argv);
@@ -75,11 +105,28 @@ int main(int argc, char *argv[]) {
                 printf("Unknown error occured when reading file.\n");
                 return 1;
         }
+    } else {
+        generate_random_grid(work_grid);
     }
 
-    /*TO-DO Normal mode (randomly generated matrix)*/
+    int counter = 10;
 
-    
+    do {
+        memcpy(ref_grid, work_grid, sizeof(int) * GRID_HEIGHT * GRID_WIDTH);
+        print_grid(ref_grid);
+        printf("\n");
+        for (int i = 0; i < 4; i++) {
+            int tr = pthread_create(&threads[i], &attr, update_subgrid, (void *)args[i]);
+            if (tr) {
+                printf("Error occured when spawning thread. Exiting.\n");
+                exit(1);
+            }
+        }
+
+        for (int i = 0; i < 4; i++) {
+            pthread_join(threads[i], NULL);
+        }
+    } while (counter--);
 
     free_cmd_parse_res(parse_res);
 

@@ -10,6 +10,7 @@
 
 int generate_input_file(const char *file_path);
 int read_input_file(char *file_path, int grid[][GRID_WIDTH]);
+void generate_random_grid(int (*grid)[GRID_WIDTH]);
 
 #define GAME_OF_LIFE_INPUT_UTILS_H
 #endif

@@ -61,3 +61,12 @@ int read_input_file(char *file_path, int (*grid)[GRID_WIDTH]) {
 
     return FILE_READ_SUCCESS;
 }
+
+void generate_random_grid(int (*grid)[GRID_WIDTH]) {
+    for (int i = 0; i < GRID_HEIGHT; i++) {
+        for (int j = 0; j < GRID_WIDTH; j++) {
+            int value = rand() % 100 > 70 ? 1 : 0;
+            grid[i][j] = value;
+        }
+    }
+}
