@@ -159,8 +159,8 @@ int main(int argc, char *argv[]) {
 
     pthread_attr_destroy(&attr);
     free_cmd_parse_res(parse_res);
-    SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
     SDL_Quit();
 
     return 0;
